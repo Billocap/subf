@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c rollup.config.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "rollup -c rollup.config.mjs --watch",
+    "build": "rollup -c rollup.config.mjs"
   },
   "keywords": [],
   "author": "",

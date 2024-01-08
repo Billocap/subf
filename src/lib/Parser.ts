@@ -53,11 +53,22 @@ export default class Parser {
   constructor() {
     this.ast = [];
     this.stack = [];
+
     this.lineNumber = 0;
   }
 
   private get lastToken() {
     return this.ast[this.ast.length - 1];
+  }
+
+  private addToken(type: TokenType) {
+    const token = new Token(type);
+
+    this.ast.push(token);
+
+    this.lineNumber++;
+
+    return token;
   }
 
   private handleDuplicates(type: TokenType) {
@@ -66,44 +77,24 @@ export default class Parser {
     if (lastToken != undefined && lastToken.type == type) {
       lastToken.value++;
     } else {
-      const token = new Token(type);
-
-      this.ast.push(token);
-
-      this.lineNumber++;
+      this.addToken(type);
     }
   }
 
-  private handleCommon(type: TokenType) {
-    const token = new Token(type);
-
-    this.ast.push(token);
-
-    this.lineNumber++;
-  }
-
   private handleBeginSub(type: TokenType) {
-    const token = new Token(type);
+    const token = this.addToken(type);
 
     this.stack.push(token);
-
-    this.ast.push(token);
-
-    this.lineNumber++;
   }
 
   private handleEndSub(type: TokenType) {
-    const token = new Token(type);
+    this.addToken(type);
 
     const beginToken = this.stack.pop();
 
     assert(beginToken != undefined, "Function not properly defined.");
 
-    beginToken.value = this.lineNumber;
-
-    this.ast.push(token);
-
-    this.lineNumber++;
+    beginToken.value = this.lineNumber - 1;
   }
 
   parse(content: string) {
@@ -118,11 +109,11 @@ export default class Parser {
           break;
 
         case Keywords.BEGIN_LOOP:
-          this.handleCommon(TokenType.BEGIN_LOOP);
+          this.addToken(TokenType.BEGIN_LOOP);
           break;
 
         case Keywords.END_LOOP:
-          this.handleCommon(TokenType.END_LOOP);
+          this.addToken(TokenType.END_LOOP);
           break;
 
         case Keywords.INCREMENT:
@@ -134,11 +125,11 @@ export default class Parser {
           break;
 
         case Keywords.INPUT:
-          this.handleCommon(TokenType.INPUT);
+          this.addToken(TokenType.INPUT);
           break;
 
         case Keywords.PRINT:
-          this.handleCommon(TokenType.PRINT);
+          this.addToken(TokenType.PRINT);
           break;
 
         case Keywords.SUB_POINTER_LEFT:
@@ -158,12 +149,12 @@ export default class Parser {
           break;
 
         case Keywords.CALL_SUB:
-          this.handleCommon(TokenType.CALL_SUB);
+          this.addToken(TokenType.CALL_SUB);
           break;
       }
     }
 
-    this.handleCommon(TokenType.END_OF_FILE);
+    this.addToken(TokenType.END_OF_FILE);
 
     return this.ast.slice();
   }

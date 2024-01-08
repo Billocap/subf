@@ -11,6 +11,7 @@ interface IO {
 export default class Interpreter {
   public programCounter: number;
   public memory: MemoryTape;
+  public functions: MemoryTape;
   public stack: number[];
 
   private readonly io: IO;
@@ -18,6 +19,7 @@ export default class Interpreter {
   constructor(io: IO) {
     this.programCounter = 0;
     this.memory = new MemoryTape();
+    this.functions = new MemoryTape();
     this.stack = [];
 
     this.io = io;
@@ -36,6 +38,14 @@ export default class Interpreter {
           this.memory.right(token.value);
           break;
 
+        case TokenType.SUB_POINTER_LEFT:
+          this.functions.left(token.value);
+          break;
+
+        case TokenType.SUB_POINTER_RIGHT:
+          this.functions.right(token.value);
+          break;
+
         case TokenType.BEGIN_LOOP:
           this.stack.push(this.programCounter - 1);
           break;
@@ -46,6 +56,29 @@ export default class Interpreter {
           assert(goto != undefined, "While loop not properly defined");
 
           if (this.memory.currentValue != 0) this.programCounter = goto;
+          break;
+
+        case TokenType.BEGIN_SUB:
+          this.functions.store(this.programCounter);
+
+          this.programCounter = token.value;
+
+          break;
+
+        case TokenType.END_SUB:
+          const returnTo = this.stack.pop();
+
+          assert(returnTo != undefined, "Function not properly defined");
+
+          if (this.memory.currentValue != 0) this.programCounter = returnTo;
+
+          break;
+
+        case TokenType.CALL_SUB:
+          this.stack.push(this.programCounter);
+
+          this.programCounter = this.functions.currentValue;
+
           break;
 
         case TokenType.INCREMENT:

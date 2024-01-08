@@ -1,3 +1,5 @@
+import assert from "@/utils/assert";
+
 export enum TokenType {
   POINTER_LEFT,
   POINTER_RIGHT,
@@ -8,6 +10,11 @@ export enum TokenType {
   INPUT,
   PRINT,
   END_OF_FILE,
+  SUB_POINTER_LEFT,
+  SUB_POINTER_RIGHT,
+  BEGIN_SUB,
+  END_SUB,
+  CALL_SUB,
 }
 
 const Keywords = {
@@ -19,6 +26,11 @@ const Keywords = {
   END_LOOP: "]",
   INPUT: ",",
   PRINT: ".",
+  SUB_POINTER_LEFT: "{",
+  SUB_POINTER_RIGHT: "}",
+  BEGIN_SUB: "(",
+  END_SUB: ")",
+  CALL_SUB: "!",
 };
 
 export class Token {
@@ -34,9 +46,14 @@ export class Token {
 
 export default class Parser {
   public readonly ast: Token[];
+  public readonly stack: Token[];
+
+  private lineNumber: number;
 
   constructor() {
     this.ast = [];
+    this.stack = [];
+    this.lineNumber = 0;
   }
 
   private get lastToken() {
@@ -52,6 +69,8 @@ export default class Parser {
       const token = new Token(type);
 
       this.ast.push(token);
+
+      this.lineNumber++;
     }
   }
 
@@ -59,6 +78,32 @@ export default class Parser {
     const token = new Token(type);
 
     this.ast.push(token);
+
+    this.lineNumber++;
+  }
+
+  private handleBeginSub(type: TokenType) {
+    const token = new Token(type);
+
+    this.stack.push(token);
+
+    this.ast.push(token);
+
+    this.lineNumber++;
+  }
+
+  private handleEndSub(type: TokenType) {
+    const token = new Token(type);
+
+    const beginToken = this.stack.pop();
+
+    assert(beginToken != undefined, "Function not properly defined.");
+
+    beginToken.value = this.lineNumber;
+
+    this.ast.push(token);
+
+    this.lineNumber++;
   }
 
   parse(content: string) {
@@ -94,6 +139,26 @@ export default class Parser {
 
         case Keywords.PRINT:
           this.handleCommon(TokenType.PRINT);
+          break;
+
+        case Keywords.SUB_POINTER_LEFT:
+          this.handleDuplicates(TokenType.SUB_POINTER_LEFT);
+          break;
+
+        case Keywords.SUB_POINTER_RIGHT:
+          this.handleDuplicates(TokenType.SUB_POINTER_RIGHT);
+          break;
+
+        case Keywords.BEGIN_SUB:
+          this.handleBeginSub(TokenType.BEGIN_SUB);
+          break;
+
+        case Keywords.END_SUB:
+          this.handleEndSub(TokenType.END_SUB);
+          break;
+
+        case Keywords.CALL_SUB:
+          this.handleCommon(TokenType.CALL_SUB);
           break;
       }
     }

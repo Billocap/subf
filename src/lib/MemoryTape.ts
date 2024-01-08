@@ -36,4 +36,8 @@ export default class MemoryTape extends Array {
 
     this[this.pointer] = newValue >= 0 ? newValue : 255 + newValue;
   }
+
+  store(value: number) {
+    this[this.pointer] = value;
+  }
 }

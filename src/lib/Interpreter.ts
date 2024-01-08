@@ -3,15 +3,24 @@ import assert from "@/utils/assert";
 import MemoryTape from "./MemoryTape";
 import { Token, TokenType } from "./Parser";
 
+interface IO {
+  input(): number;
+  output(char: string): void;
+}
+
 export default class Interpreter {
   public programCounter: number;
   public memory: MemoryTape;
   public stack: number[];
 
-  constructor() {
+  private readonly io: IO;
+
+  constructor(io: IO) {
     this.programCounter = 0;
     this.memory = new MemoryTape();
     this.stack = [];
+
+    this.io = io;
   }
 
   execute(ast: Token[]) {
@@ -48,7 +57,11 @@ export default class Interpreter {
           break;
 
         case TokenType.PRINT:
-          process.stdout.write(this.memory.currentChar);
+          this.io.output(this.memory.currentChar);
+          break;
+
+        case TokenType.INPUT:
+          this.memory.store(this.io.input());
           break;
       }
 

@@ -98,7 +98,7 @@ export default class Parser {
       }
     }
 
-    this.ast.push(new Token(TokenType.END_OF_FILE));
+    this.handleCommon(TokenType.END_OF_FILE);
 
     return this.ast.slice();
   }

@@ -1,5 +1,5 @@
 /**
- * Makes sure the condition is `true`.
+ * Makes sure the `condition` is `true`.
  * @param condition Condition to test.
  * @param message Error message if assertion fails.
  */
